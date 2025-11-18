@@ -1,16 +1,14 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
 <title>Painel de Vendas</title>
-
 <!-- Favicon placeholder (substitua por LOGOFRONT.ico se desejar) -->
-<link rel="icon" href="data:image/x-icon;base64,">
-
+<link href="data:image/x-icon;base64," rel="icon"/>
 <!-- DataTables CSS -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"/>
-
+<link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet">
 <style>
 :root{--blue:#005baa;--green:#28a745;--orange:#ff7f0f;--muted:#6b7280}
 body{font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,Arial; margin:14px;background:#fff;color:#111}
@@ -97,7 +95,6 @@ h4 { color:#003366 !important; }
 }
 
 </style>
-
 <!-- libs -->
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -107,34 +104,46 @@ h4 { color:#003366 !important; }
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-
+</link>
+<style>
+@media (max-width: 768px) {
+  .header { flex-direction: column !important; text-align:center !important; }
+  .title-center { font-size:26px !important; }
+  .kpis { flex-direction: column !important; }
+  .kpi { width:100% !important; }
+  .filters { flex-direction: column !important; align-items:stretch !important; }
+  .filters .group { width:100% !important; }
+  .canvas-small { width:100% !important; height:auto !important; max-width:100% !important; }
+  .card { width:100% !important; }
+  button, .small-ghost { width:100% !important; margin-bottom:6px !important; }
+  table { display:block !important; overflow-x:auto !important; width:100% !important; }
+}
+</style>
 </head>
 <body>
-
 <div id="loadingOverlay" style="
     position:fixed; top:0; left:0; width:100%; height:100%;
     background:rgba(255,255,255,0.8); backdrop-filter:blur(4px);
     display:none; z-index:9999; 
     align-items:center; justify-content:center; flex-direction:column;
 ">
-    <div class="spinner" style="
+<div class="spinner" style="
         width:60px; height:60px; border:6px solid #ccc; 
         border-top-color:#003366; border-radius:50%;
         animation:spin 1s linear infinite;
     "></div>
-    <div style="margin-top:20px; font-size:20px; color:#003366; font-weight:bold;">
+<div style="margin-top:20px; font-size:20px; color:#003366; font-weight:bold;">
         Lendo arquivo…
     </div>
-    <div id="loadBarContainer" style="
+<div id="loadBarContainer" style="
         margin-top:20px; width:200px; height:10px; background:#ddd; border-radius:5px; overflow:hidden;
     ">
-        <div id="loadBar" style="
+<div id="loadBar" style="
             height:100%; width:0%; background:#003366;
             transition:width 0.2s ease;
         "></div>
-    </div>
 </div>
-
+</div>
 <style>
 @keyframes spin {
   from {transform:rotate(0deg);}
@@ -177,173 +186,140 @@ h4 { color:#003366 !important; }
 }
 
 </style>
-
-
-  <div class="header">
-    <img src="TudoCasa.png" alt="Logo" style="width:220px;height:60px">
-    <!--<div class="brand">TUDO CASA</div> -->
-    <div class="title-center">Painel de Vendas</div>
-  </div>
-
-  <!-- Controls + Filters -->
-  <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <button id="btnLoadData">📊 Buscar na Web</button>
-        <button id="btnLocal">📂 Buscar na Pasta Local</button>
-        <input id="fileInput" type="file" accept=".csv,.xlsx,.xls" style="display:none"/>
-        <input id="fileMetaInput" type="file" accept=".xlsx,.xls" style="display:none"/>
-        <a href="https://.google.com//folders/1sdDat2TXSxmgA24LWcqFbuvmp5O2mKSx?hl=pt-br" target="_blank" class="small-ghost">Pasta Web</a>
-        <span id="statusBadge" style="margin-left:8px;color:#666"></span>
-      </div>
-
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <button id="btnReset" class="small-ghost">Limpar</button>
-      </div>
-    </div>
-
-    <!-- Titles above selects and aligned filters -->
-    <div class="filters" style="margin-top:12px">
-      <div class="group"><label for="filterEmpresa">EMPRESA</label><select id="filterEmpresa"><option value="">Selecione a Empresa...</option></select></div>
-      <div class="group"><label for="filterVendedor">VENDEDOR</label><select id="filterVendedor"><option value="">Selecione o Vendedor...</option></select></div>
-      <div class="group"><label for="filterGrupo">GRUPO</label><select id="filterGrupo"><option value="">Selecione o Grupo...</option></select></div>
-      <div class="group"><label for="filterAno">ANO</label><select id="filterAno"><option value="">Ano...</option></select></div>
-      <div class="group"><label for="filterMes">MÊS</label><select id="filterMes"><option value="">Mês...</option><option value="1">Jan</option><option value="2">Fev</option><option value="3">Mar</option><option value="4">Abr</option><option value="5">Mai</option><option value="6">Jun</option><option value="7">Jul</option><option value="8">Ago</option><option value="9">Set</option><option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option></select></div>
-
-      <!-- Period fields (ignored when Ano+Mes selected) -->
-      <div class="group"><label for="dateFrom">PERÍODO INÍCIO</label><input id="dateFrom" type="date"/><span id="periodNotice" style="color:#003366;font-size:8pt;display:none;margin-left:6px;">⚠️ Zerar MÊS e ANO para filtrar por PERÍODO</span></div>
-      <div class="group"><label for="dateTo">PERÍODO FIM</label><input id="dateTo" type="date"/></div>
-    </div>
-  </div>
-
-  <!-- KPIs -->
-  <div class="kpis">
-    <div class="kpi card"><div class="label">Total de Vendas (R$)</div><div id="kpiTotal" class="value">R$ 0,00</div></div>
-
-    <div class="kpi card" style="border-left-color:purple">
-      <div class="label">Total das Metas de Vendas(R$)</div>
-      <div id="kpiTotalMetas" class="value">R$ 0,00</div>
-    </div>
-
-    <div class="kpi card" style="border-left-color:#aa5500">
-      <div class="label">% Alcançado das Metas de Vendas</div>
-      <div id="kpiPctMeta" class="value">0%</div>
-    </div>
-
-    <div class="kpi card" style="border-left-color:var(--blue)"><div class="label">Ticket Médio (R$)</div><div id="kpiTicket" class="value">R$ 0,00</div></div>
-    <div class="kpi card" style="border-left-color:var(--orange)"><div class="label">Nº Vendas</div><div id="kpiCount" class="value">0</div></div>
-  </div>
-
-  <!-- LAYOUT REORGANIZADO: 60% / 40% -->
+<div class="header">
+<img alt="Logo" src="TudoCasa.png" style="width:220px;height:60px"/>
+<!--<div class="brand">TUDO CASA</div> -->
+<div class="title-center">Painel de Vendas</div>
+</div>
+<!-- Controls + Filters -->
+<div class="card">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+<button id="btnLoadData">📊 Buscar na Web</button>
+<button id="btnLocal">📂 Buscar na Pasta Local</button>
+<input accept=".csv,.xlsx,.xls" id="fileInput" style="display:none" type="file"/>
+<input accept=".xlsx,.xls" id="fileMetaInput" style="display:none" type="file"/>
+<a class="small-ghost" href="https://.google.com//folders/1sdDat2TXSxmgA24LWcqFbuvmp5O2mKSx?hl=pt-br" target="_blank">Pasta Web</a>
+<span id="statusBadge" style="margin-left:8px;color:#666"></span>
+</div>
+<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+<button class="small-ghost" id="btnReset">Limpar</button>
+</div>
+</div>
+<!-- Titles above selects and aligned filters -->
+<div class="filters" style="margin-top:12px">
+<div class="group"><label for="filterEmpresa">EMPRESA</label><select id="filterEmpresa"><option value="">Selecione a Empresa...</option></select></div>
+<div class="group"><label for="filterVendedor">VENDEDOR</label><select id="filterVendedor"><option value="">Selecione o Vendedor...</option></select></div>
+<div class="group"><label for="filterGrupo">GRUPO</label><select id="filterGrupo"><option value="">Selecione o Grupo...</option></select></div>
+<div class="group"><label for="filterAno">ANO</label><select id="filterAno"><option value="">Ano...</option></select></div>
+<div class="group"><label for="filterMes">MÊS</label><select id="filterMes"><option value="">Mês...</option><option value="1">Jan</option><option value="2">Fev</option><option value="3">Mar</option><option value="4">Abr</option><option value="5">Mai</option><option value="6">Jun</option><option value="7">Jul</option><option value="8">Ago</option><option value="9">Set</option><option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option></select></div>
+<!-- Period fields (ignored when Ano+Mes selected) -->
+<div class="group"><label for="dateFrom">PERÍODO INÍCIO</label><input id="dateFrom" type="date"/><span id="periodNotice" style="color:#003366;font-size:8pt;display:none;margin-left:6px;">⚠️ Zerar MÊS e ANO para filtrar por PERÍODO</span></div>
+<div class="group"><label for="dateTo">PERÍODO FIM</label><input id="dateTo" type="date"/></div>
+</div>
+</div>
+<!-- KPIs -->
+<div class="kpis">
+<div class="kpi card"><div class="label">Total de Vendas (R$)</div><div class="value" id="kpiTotal">R$ 0,00</div></div>
+<div class="kpi card" style="border-left-color:purple">
+<div class="label">Total das Metas de Vendas(R$)</div>
+<div class="value" id="kpiTotalMetas">R$ 0,00</div>
+</div>
+<div class="kpi card" style="border-left-color:#aa5500">
+<div class="label">% Alcançado das Metas de Vendas</div>
+<div class="value" id="kpiPctMeta">0%</div>
+</div>
+<div class="kpi card" style="border-left-color:var(--blue)"><div class="label">Ticket Médio (R$)</div><div class="value" id="kpiTicket">R$ 0,00</div></div>
+<div class="kpi card" style="border-left-color:var(--orange)"><div class="label">Nº Vendas</div><div class="value" id="kpiCount">0</div></div>
+</div>
+<!-- LAYOUT REORGANIZADO: 60% / 40% -->
 <div style="display:flex;gap:12px;margin-top:12px;align-items:stretch;">
-
-  <!-- PAINEL ESQUERDO – 60% -->
-  <div style="flex:0 0 60%; height:100%; display:flex; flex-direction:column;">
-    <div class="card">
-
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <h3 class="h3-title">Vendas por Vendedor</h3>
-        <span style="color:red;font-size:12px">Clicar no item p/ detalhes</span>
-
-        <div style="display:flex;align-items:center;gap:8px">
-          <select id="vendedorPageLength" class="small-ghost">
-		  <option value="15" selected>15</option>
-		  <option value="20">20</option>
-		  <option value="25">25</option>
-		  <option value="50">50</option>
-		  </select>
-          <button id="btnExportVendedorCSV" class="small-ghost">Exportar CSV</button>
-          <button id="btnExportVendedorPDF" class="small-ghost">Exportar PDF</button>
-        </div>
-
-      </div>
-
-      <div id="totalsTop" class="totals-row card" style="display:none">
-        <div class="item"><span style="color:red;font-weight:700">TOTAL GERAL:</span></div>
-        <div class="item" id="totVal">R$ 0,00</div>
-        <div style="flex:1"></div>
-        <div class="item"><span style="color:red;font-weight:700">MÉDIA META:</span></div>
-        <div class="item" id="avgMeta">R$ 0,00</div>
-        <div class="item"><span style="color:red;font-weight:700">MÉDIA %META:</span></div>
-        <div class="item" id="avgPct">0,00%</div>
-      </div>
-
-      <table id="tableVendasVendedor" class="display table-small" style="width:100%;
+<!-- PAINEL ESQUERDO – 60% -->
+<div style="flex:0 0 60%; height:100%; display:flex; flex-direction:column;">
+<div class="card">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<h3 class="h3-title">Vendas por Vendedor</h3>
+<span style="color:red;font-size:12px">Clicar no item p/ detalhes</span>
+<div style="display:flex;align-items:center;gap:8px">
+<select class="small-ghost" id="vendedorPageLength">
+<option selected="" value="15">15</option>
+<option value="20">20</option>
+<option value="25">25</option>
+<option value="50">50</option>
+</select>
+<button class="small-ghost" id="btnExportVendedorCSV">Exportar CSV</button>
+<button class="small-ghost" id="btnExportVendedorPDF">Exportar PDF</button>
+</div>
+</div>
+<div class="totals-row card" id="totalsTop" style="display:none">
+<div class="item"><span style="color:red;font-weight:700">TOTAL GERAL:</span></div>
+<div class="item" id="totVal">R$ 0,00</div>
+<div style="flex:1"></div>
+<div class="item"><span style="color:red;font-weight:700">MÉDIA META:</span></div>
+<div class="item" id="avgMeta">R$ 0,00</div>
+<div class="item"><span style="color:red;font-weight:700">MÉDIA %META:</span></div>
+<div class="item" id="avgPct">0,00%</div>
+</div>
+<table class="display table-small" id="tableVendasVendedor" style="width:100%;
         font-size:12px !important;">
-      </table>
-
-    </div>
-  </div>
-
-  <!-- PAINEL DIREITO – 40% -->
-  <div style="flex:0 0 40%; height:100%; display:flex; flex-direction:column;display:flex;flex-direction:column;gap:12px;height:100%;">
-
-    <div class="card chart-container-large" style="padding:6px; flex:1; display:flex; flex-direction:column;">
-	<h4>Por Vendedor (15 maiores)</h4>
-      <canvas id="chartVendedor" class="canvas-small"></canvas></canvas>
-    </div>
-
-  </div>
-
+</table>
 </div>
-  
-  <!-- Gráficos POR MÊS, POR GRUPO e POR FORMA -->
+</div>
+<!-- PAINEL DIREITO – 40% -->
+<div style="flex:0 0 40%; height:100%; display:flex; flex-direction:column;display:flex;flex-direction:column;gap:12px;height:100%;">
+<div class="card chart-container-large" style="padding:6px; flex:1; display:flex; flex-direction:column;">
+<h4>Por Vendedor (15 maiores)</h4>
+<canvas class="canvas-small" id="chartVendedor"></canvas>
+</div>
+</div>
+</div>
+<!-- Gráficos POR MÊS, POR GRUPO e POR FORMA -->
 <div class="card" style="margin-top:12px;">
-    <!-- <h3 class="h3-title">Distribuição Geral</h3> -->
-    <div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center;">
-        <div class="card" style="width:456px; padding:8px;">
-          <h4 style="margin:6px 0; text-align:center;">Por Mês (R$)</h4>
-          <canvas id="chartMes" class="canvas-small"></canvas>
-        </div>
-        <div class="card" style="width:456px; padding:8px;"">
-          <h4 style="margin:6px 0; text-align:center;">Por Grupo (10 maiores)</h4>
-          <canvas id="chartGrupo" class="canvas-small"></canvas>
-        </div>
-        <div class="card" ">
-          <h4 style="margin:6px 0; text-align:center;">Por Forma</h4>
-          <canvas id="chartForma" class="canvas-small"></canvas>
-        </div>
-    </div>
+<!-- <h3 class="h3-title">Distribuição Geral</h3> -->
+<div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center;">
+<div class="card" style="width:456px; padding:8px;">
+<h4 style="margin:6px 0; text-align:center;">Por Mês (R$)</h4>
+<canvas class="canvas-small" id="chartMes"></canvas>
 </div>
-
-
+<div "="" class="card" style="width:456px; padding:8px;">
+<h4 style="margin:6px 0; text-align:center;">Por Grupo (10 maiores)</h4>
+<canvas class="canvas-small" id="chartGrupo"></canvas>
+</div>
+<div "="" class="card">
+<h4 style="margin:6px 0; text-align:center;">Por Forma</h4>
+<canvas class="canvas-small" id="chartForma"></canvas>
+</div>
+</div>
+</div>
 <!-- TABELAS CONSOLIDADAS -->
 <div class="card" style="margin-top:12px;">
-  <div style="display:flex; gap:12px; justify-content:space-between; flex-wrap:wrap;">
-
-    <div style="flex:1; min-width:300px;">
-      <h4>Vendas por Mês</h4>
-      <div style="margin-bottom:6px;">
-        <button class="small-ghost" onclick="exportTableCSV('tblMes')">Exportar CSV</button>
-        <button class="small-ghost" onclick="exportTablePDF('tblMes')">Exportar PDF</button>
-      </div>
-    
-      <table id="tblMes" class="display table-small" style="width:100%"></table>
-    </div>
-
-    <div style="flex:1; min-width:300px;">
-      <h4>Vendas por Grupo</h4>
-      <div style="margin-bottom:6px;">
-        <button class="small-ghost" onclick="exportTableCSV('tblGrupo')">Exportar CSV</button>
-        <button class="small-ghost" onclick="exportTablePDF('tblGrupo')">Exportar PDF</button>
-      </div>
-    
-      <table id="tblGrupo" class="display table-small" style="width:100%"></table>
-    </div>
-
-    <div style="flex:1; min-width:300px;">
-      <h4>Vendas por Forma Pgto</h4>
-      <div style="margin-bottom:6px;">
-        <button class="small-ghost" onclick="exportTableCSV('tblForma')">Exportar CSV</button>
-        <button class="small-ghost" onclick="exportTablePDF('tblForma')">Exportar PDF</button>
-      </div>
-    
-      <table id="tblForma" class="display table-small" style="width:100%"></table>
-    </div>
-
-  </div>
+<div style="display:flex; gap:12px; justify-content:space-between; flex-wrap:wrap;">
+<div style="flex:1; min-width:300px;">
+<h4>Vendas por Mês</h4>
+<div style="margin-bottom:6px;">
+<button class="small-ghost" onclick="exportTableCSV('tblMes')">Exportar CSV</button>
+<button class="small-ghost" onclick="exportTablePDF('tblMes')">Exportar PDF</button>
 </div>
-
+<table class="display table-small" id="tblMes" style="width:100%"></table>
+</div>
+<div style="flex:1; min-width:300px;">
+<h4>Vendas por Grupo</h4>
+<div style="margin-bottom:6px;">
+<button class="small-ghost" onclick="exportTableCSV('tblGrupo')">Exportar CSV</button>
+<button class="small-ghost" onclick="exportTablePDF('tblGrupo')">Exportar PDF</button>
+</div>
+<table class="display table-small" id="tblGrupo" style="width:100%"></table>
+</div>
+<div style="flex:1; min-width:300px;">
+<h4>Vendas por Forma Pgto</h4>
+<div style="margin-bottom:6px;">
+<button class="small-ghost" onclick="exportTableCSV('tblForma')">Exportar CSV</button>
+<button class="small-ghost" onclick="exportTablePDF('tblForma')">Exportar PDF</button>
+</div>
+<table class="display table-small" id="tblForma" style="width:100%"></table>
+</div>
+</div>
+</div>
 <script>
 
 function exportTableCSV(tbl){
@@ -437,26 +413,21 @@ function renderExtraTables(){
   });
 }
 </script>
-
-
 <!-- Tabela completa de vendas -->
-  <div class="card table-wrap" style="margin-top:12px">
-    <h3 class="h3-title">Tabela de Vendas (completa)</h3>
-    <table id="tableVendas" class="display" style="width:100%"></table>
-  </div>
-
-  <!-- Modal backdrop -->
-  <div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-hidden="true">
-    <div class="modal" role="document">
-      <div style="display:flex;align-items:center">
-        <div class="spinner" aria-hidden="true"></div>
-        <div><h4 id="modalTitle">Aguarde</h4><p id="modalMessage">Carregando...</p></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="footer-note">Exportações incluem data/hora de geração no rodapé do PDF.</div>
-
+<div class="card table-wrap" style="margin-top:12px">
+<h3 class="h3-title">Tabela de Vendas (completa)</h3>
+<table class="display" id="tableVendas" style="width:100%"></table>
+</div>
+<!-- Modal backdrop -->
+<div aria-hidden="true" class="modal-backdrop" id="modalBackdrop" role="dialog">
+<div class="modal" role="document">
+<div style="display:flex;align-items:center">
+<div aria-hidden="true" class="spinner"></div>
+<div><h4 id="modalTitle">Aguarde</h4><p id="modalMessage">Carregando...</p></div>
+</div>
+</div>
+</div>
+<div class="footer-note">Exportações incluem data/hora de geração no rodapé do PDF.</div>
 <script>
 /* ================== CONFIG / STATE ================== */
 const _SALES_URL = "https://.google.com/uc?export=download&id=14l6dC7Pb8F5GXXkQeVEH3fNuHYGdCgmt";
@@ -1161,7 +1132,6 @@ document.getElementById('btnExportVendedorPDF')?.addEventListener('click', expor
   }
 })();
 </script>
-
 <script>
 document.getElementById('fileSales').addEventListener('change', function(ev){
     const file = ev.target.files[0];
@@ -1197,8 +1167,6 @@ document.getElementById('fileMeta').addEventListener('change', function(ev){
     }
 });
 </script>
-
-
 <script>
 function updateDateBlock() {
     const ano = document.getElementById('filterAno').value;
@@ -1220,8 +1188,6 @@ function updateDateBlock() {
 document.getElementById('filterAno').addEventListener('change', updateDateBlock);
 document.getElementById('filterMes').addEventListener('change', updateDateBlock);
 </script>
-
-
 <script>
 function updatePeriodNotice(){
     const ano=document.getElementById('filterAno').value;
@@ -1251,6 +1217,5 @@ function updatePeriodNotice(){
     document.getElementById(id).addEventListener('change',updatePeriodNotice);
 });
 </script>
-
 </body>
 </html>
