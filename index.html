@@ -278,7 +278,8 @@ function checkLogin() {
     const u = document.getElementById("userField").value;
     const p = document.getElementById("passField").value;
 
-    if (u === user && p === pass1 || p === pass2 ) {
+    if (u === user && (p === pass1 || p === pass2)) {
+        userLogged = true;
         document.getElementById("login-overlay").style.display = "none";
     } else {
         document.getElementById("login-error").style.display = "block";
@@ -652,6 +653,7 @@ function renderExtraTables(){
 <div class="footer-note">Exportações incluem data/hora de geração no rodapé do PDF.</div>
 <script>
 /* ================== CONFIG / STATE ================== */
+let userLogged = false;
 const _SALES_URL = "https://.google.com/uc?export=download&id=14l6dC7Pb8F5GXXkQeVEH3fNuHYGdCgmt";
 const _META_URL  = "https://.google.com/uc?export=download&id=1x-RbTSsZg7ObFyTowBC9kvwMJT9QnyZH";
 const LOCAL_SALES_NAME = "Vendas_TC.csv";
@@ -752,8 +754,10 @@ async function loadFromDefaultFolder(){
     closeModal();
   }
 }
-btnLoadData.addEventListener('click', ()=>{ resetData(); openModal('Carregando arquivos de Vendas'); loadFromDefaultFolder(); });
-btnLocal.addEventListener('click', ()=> { resetData(); openModal('Carregando arquivos de Vendas'); fileInput.click(); fileMetaInput.click(); });
+btnLoadData.addEventListener('click', ()=>{
+    if (!userLogged) { alert('⚠ Faça login para carregar os dados.'); return; } resetData(); openModal('Carregando arquivos de Vendas'); loadFromDefaultFolder(); });
+btnLocal.addEventListener('click', ()=> {
+    if (!userLogged) { alert('⚠ Faça login para carregar os dados.'); return; } resetData(); openModal('Carregando arquivos de Vendas'); fileInput.click(); fileMetaInput.click(); });
 fileInput.addEventListener('change', handleLocalFile);
 fileMetaInput.addEventListener('change', handleLocalMetaFile);
 btnReset.addEventListener('click', ()=>{ [filterEmpresa,filterVendedor,filterGrupo,filterAno,filterMes,dateFrom,dateTo].forEach(e=>e.value=''); applyFilters(); });
@@ -856,7 +860,7 @@ function handleLocalMetaFile(e){
     commissionData = XLSX.utils.sheet_to_json(sheet, {defval:''}).map(r=>{ const R={}; for(const k in r) R[String(k).trim().toUpperCase()] = r[k]; return R; });
     console.log('✅ Metas carregadas localmente. Registros:', commissionData.length);
     applyFilters();
-    statusBadge.textContent = 'Metas carregadas localmente.'; closeModalWithSuccess();
+    statusBadge.textContent = 'Arquivos carregados localmente.'; closeModalWithSuccess();
   };
   reader.readAsArrayBuffer(f);
 }
@@ -878,7 +882,7 @@ function normalize(rows){
       EMPRESA: String(R['EMPRESA']||''),
       ANO: ano,
       MES: mes,
-      DATA: parsedDate ? parsedDate.toISOString().slice(0,15) : (R['DATA']||''),
+      DATA: parsedDate ? parsedDate.toLocaleDateString('pt-BR') : (R['DATA']||''),
       CLIENTE: R['CLIENTE']||'',
       DOC: R['DOC']||R['DOCUMENTO']||'',
       PRODUTO: R['PRODUTO']||'',
@@ -936,11 +940,11 @@ const emp = filterEmpresa.value;
     if(vend && r.VENDEDOR !== vend) return false;
     if(grp && r.GRUPO !== grp) return false;
 
-    // If year+month selected -> ignore period
-    if(ano && mes){
-      if(!r.ANO || String(r.ANO) !== String(ano)) return false;
-      if(!r.MES || String(r.MES) !== String(mes)) return false;
-    } else {
+    // Month/year filters
+    if(mes){ if(!r.MES || String(r.MES)!==String(mes)) return false; }
+    if(ano){ if(!r.ANO || String(r.ANO)!==String(ano)) return false; }
+    if(!mes || !ano){
+
       if(from && (!r.DATA || new Date(r.DATA) < from)) return false;
       if(to && (!r.DATA || new Date(r.DATA) > to)) return false;
     }
@@ -1109,11 +1113,12 @@ function buildConsolidated(){
 }
 
 /* ================== TABLE VENDAS (completa) ================== */
+function formatDateBR(d){ if(!d) return ""; const dt=new Date(d); if(isNaN(dt)) return d; return dt.toLocaleDateString("pt-BR"); }
 function renderTableVendas(){
   if($.fn.dataTable.isDataTable('#tableVendas')) { $('#tableVendas').DataTable().destroy(); $('#tableVendas').empty(); }
   const cols = ['DATA','EMPRESA','DOC','CLIENTE','PRODUTO','QTD','PRECO','VALOR','FORMA','VENDEDOR','GRUPO','SUBGRUPO'];
   const data = filtered.map(r=>({DATA:r.DATA, EMPRESA:r.EMPRESA, DOC:r.DOC, CLIENTE:r.CLIENTE, PRODUTO:r.PRODUTO, QTD:r.QTD, PRECO:r.PRECO, VALOR:(Number(r.VALOR)||0), FORMA:r.FORMA, VENDEDOR:r.VENDEDOR, GRUPO:r.GRUPO, SUBGRUPO:r.SUBGRUPO}));
-  dtVendas = $('#tableVendas').DataTable({ data:data, columns: cols.map(c=>({title:c,data:c, render: c==='VALOR'? v=>fmtCurrency(v): undefined})), pageLength:30 });
+  dtVendas = $('#tableVendas').DataTable({ data:data, columns: cols.map(c=>({title:c,data:c, render: c==='VALOR'? v=>fmtCurrency(v): (c==='DATA'? d=>formatDateBR(d): undefined)})), pageLength:30 });
   // ensure small font applied after datatable draw
   $('#tableVendas').addClass('table-small');
 }
@@ -1189,8 +1194,8 @@ function openVendedorDocsModal(empresa, vendedor) {
   const html = `
     <div class="modal small-font" style="display:block;max-height:80vh;overflow:auto;padding:8px;border-radius:8px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-        <div style="color:red;font-size:9pt">Clicar no ítem p/ detalhes</div>
-		<h4 style="margin:0;font-size:5pt;">Docs - ${vendedor} (${empresa})</h4>
+	    <h4 style="margin:0;font-size:10pt;">DOCS: ${vendedor}</h4>
+		<div style="color:red;font-size:6pt">Clicar para abrir</div>
         <div style="display:flex;gap:4px;">
           <button id="exportDocsCSV">Exportar CSV</button>
           <button id="exportDocsPDF">Exportar PDF</button>
@@ -1292,7 +1297,7 @@ function openDocumentoDetalheModal(empresa, vendedor, data, docNum) {
     <div class="modal small-font" style="display:block;max-height:80vh;overflow:auto;padding:8px;border-radius:8px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
         <div>
-          <div style="color:red;font-size:9pt">Clicar no ítem p/ detalhes</div><h4 style="margin:0;font-size:9pt;">Doc: ${docNum} — Vendedor: ${vendedor}</h4>
+          <div style="color:red;font-size:6pt">Clicar no ítem p/ detalhes</div><h4 style="margin:0;font-size:9pt;">Doc: ${docNum} — Vendedor: ${vendedor}</h4>
           <div style="font-size:8pt;margin-top:4px;text-align:left;">TOTAL : ${formatNumber(total)}</div>
         </div>
         <div style="display:flex;gap:6px;">
@@ -1309,7 +1314,7 @@ function openDocumentoDetalheModal(empresa, vendedor, data, docNum) {
         <tbody>${rows}</tbody>
       </table>
     </div>
-  `;
+ `;
 
   const backdrop = document.createElement('div');
   backdrop.style.position = 'fixed';
@@ -1413,7 +1418,7 @@ document.getElementById('btnExportVendedorPDF')?.addEventListener('click', expor
   }catch(e){
     console.warn('⚠️ auto  load failed', e);
     const ok = await tryLoadLocalFileFallback();
-    if(!ok){ closeModal(); statusBadge.textContent='Aguardando upload local (botão Atualizar Local)'; }
+    if(!ok){ closeModal(); statusBadge.textContent='Aguardando upload local (botão Buscar na Pasta Local)'; }
   }
 })();
 </script>
