@@ -282,6 +282,7 @@ function checkLogin() {
 
     if (u === user && (p === pass1 || p === pass2)) {
         userLogged = true;
+    loadFromDefaultFolder();
         document.getElementById("login-overlay").style.display = "none";
     } else {
         document.getElementById("login-error").style.display = "block";
