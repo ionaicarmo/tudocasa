@@ -1190,7 +1190,7 @@ function gerarCores(n){ const palette=['#005baa','#28a745','#ff7f0f','#cc3366','
 
 // Modal: list of documents for vendedor
 function openVendedorDocsModal(empresa, vendedor) {
-  const docs = consolidated.filter(d => String(d.EMPRESA) === String(empresa) && String(d.VENDEDOR) === String(vendedor));
+  const docs = filtered.filter(d => String(d.EMPRESA) === String(empresa) && String(d.VENDEDOR) === String(vendedor));
   const rows = docs.map(d => `
     <tr data-empresa="${d.EMPRESA}" data-vendedor="${d.VENDEDOR}" data-data="${d.DATA}" data-doc="${d.DOC}" style="font-size:8pt;">
       <td>${d.DATA}</td>
