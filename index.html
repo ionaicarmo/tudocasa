@@ -282,6 +282,7 @@ function checkLogin() {
 
     if (u === user && (p === pass1 || p === pass2)) {
         userLogged = true;
+    openModal('Carregando arquivos de vendas...');
     loadFromDefaultFolder();
         document.getElementById("login-overlay").style.display = "none";
     } else {
