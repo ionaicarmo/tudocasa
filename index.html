@@ -197,6 +197,8 @@ h4 { color:#003366 !important; }
     text-align:center;
     animation: fadeIn 0.8s ease;
 }
+
+#login-card .input-icon { margin-bottom:12px; }
 #login-card img {
     width:140px;
     margin-bottom:15px;
@@ -716,6 +718,7 @@ function resetData(){
 
 /* ================ LOAD from default folder (mesma pasta do HTML) ================ */
 async function loadFromDefaultFolder(){
+    if (!userLogged) return;
   try{
     // Try to fetch sales file from same folder as HTML
     const resp = await fetch(LOCAL_SALES_NAME);
@@ -764,9 +767,12 @@ btnReset.addEventListener('click', ()=>{ [filterEmpresa,filterVendedor,filterGru
 vendedorPageLength.addEventListener('change', ()=>{ if(dtVendedor) dtVendedor.page.len(Number(vendedorPageLength.value)).draw(); });
 [filterEmpresa,filterVendedor,filterGrupo,filterAno,filterMes,dateFrom,dateTo].forEach(el=>el.addEventListener('change', applyFilters));
 
-function openModal(msg='Aguarde...'){ modalBackdrop.style.display='flex'; modalMessage.textContent = msg; }
+function openModal(msg='Aguarde...') {
+  modalBackdrop.style.display='flex';
+  document.getElementById('modalTitle').textContent = msg;
+  modalMessage.textContent = msg.textContent = msg; }
 function closeModal(){ modalBackdrop.style.display='none'; modalMessage.textContent=''; }
-function closeModalWithSuccess(){ modalMessage.textContent='✅ Pronto'; setTimeout(()=>modalBackdrop.style.display='none',700); }
+function closeModalWithSuccess(){ modalMessage.textContent='✅ Aguarde'; setTimeout(()=>modalBackdrop.style.display='none',700); }
 
 /* ================== UTILS: filters string for exports ================== */
 function getFiltersString(){
@@ -782,6 +788,7 @@ function getFiltersString(){
 
 /* ================== FETCH  & FALLBACK ================== */
 async function fetchFromAndLoad(){
+    if (!userLogged) return;
   try{
     console.log('🔄 Tentando carregar Vendas do ...');
     await carregarPlanilhaFromURL(_SALES_URL);
@@ -824,6 +831,7 @@ async function carregarMetasFromURL(url){
 
 // fallback local automatic attempt
 async function tryLoadLocalFileFallback(){
+    if (!userLogged) return false;
   try{
     const resp = await fetch(LOCAL_SALES_NAME);
     if(resp.ok){
