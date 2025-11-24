@@ -37,7 +37,7 @@ button{background:var(--blue);color:#fff;padding:8px 12px;border-radius:8px;bord
 .footer-note{font-size:12px;color:#666;text-align:center;margin-top:12px}
 
 /* canvas-small increased by 50% (de 160/320 -> 240/480) */
-.canvas-small { width:460px !important; height:400px !important; max-width:460px !important; margin:auto; display:block; }
+.canvas-small { width:460px !important; height:400px !important; max-width:1200px !important; margin:auto; display:block; }
 
 /* table fonts: smaller on vendas completa and small tables */
 .small-font{font-size:8pt}
@@ -57,7 +57,7 @@ button{background:var(--blue);color:#fff;padding:8px 12px;border-radius:8px;bord
 }
 
 /* Reduzir tamanho das pizzas em 20% */
-.canvas-small { width:460px !important; height:400px !important; max-width:460px !important; margin:auto; display:block; }
+.canvas-small { width:460px !important; height:400px !important; max-width:1200px !important; margin:auto; display:block; }
 
 #chartMes { width:442px !important; height:368px !important; }
 #chartGrupo { width:442px !important; height:368px !important; }
@@ -164,7 +164,7 @@ h4 { color:#003366 !important; }
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 <style>
-@media (max-width: 768px) {
+@media (max-width:1200px) {
   .header { flex-direction: column !important; text-align:center !important; }
   .title-center { font-size:26px !important; }
   .kpis { flex-direction: column !important; }
@@ -177,6 +177,7 @@ h4 { color:#003366 !important; }
   table { display:block !important; overflow-x:auto !important; width:100% !important; }
 }
 </style>
+<style>table.dataTable td, table.dataTable th { padding: 8px 22px !important; }</style>
 </head>
 <body>
 <style>
@@ -205,8 +206,8 @@ h4 { color:#003366 !important; }
 }
 .input-icon {
     position: relative;
-    width: 100%;
-    max-width: 100%;
+    width:100%;
+    max-width:100%;
     display: block;
     box-sizing: border-box;
 }
@@ -218,7 +219,7 @@ h4 { color:#003366 !important; }
     color:#666;
 }
 .input-icon input {
-    width: 100%;
+    width:100%;
     padding: 12px 40px;
     padding-left: 35px;
     box-sizing: border-box;
@@ -368,7 +369,7 @@ document.getElementById("togglePass").onclick = function() {
         margin-top:20px; width:200px; height:10px; background:#ddd; border-radius:5px; overflow:hidden;
     ">
 <div id="loadBar" style="
-            height:100%; width:0%; background:#003366;
+            height:100%; width:100%; background:#003366;
             transition:width 0.2s ease;
         "></div>
 </div>
@@ -471,13 +472,14 @@ h4 { color:#003366 !important; }
 <span style="color:red;font-size:12px">Clicar no item p/ detalhes</span>
 <div style="display:flex;align-items:center;gap:8px">
 <select class="small-ghost" id="vendedorPageLength">
-<option selected="" value="15">15</option>
+    <option selected value="18">18</option>
+<option ="" value="15">15</option>
 <option value="20">20</option>
 <option value="25">25</option>
 <option value="50">50</option>
 </select>
-<button class="small-ghost" id="btnExportVendedorCSV">Exportar CSV</button>
-<button class="small-ghost" id="btnExportVendedorPDF">Exportar PDF</button>
+
+
 </div>
 </div>
 <div class="totals-row card" id="totalsTop" style="display:none">
@@ -526,54 +528,30 @@ h4 { color:#003366 !important; }
 <div style="flex:1; min-width:300px;">
 <h4>Vendas por Mês</h4>
 <div style="margin-bottom:6px;">
-<button class="small-ghost" onclick="exportTableCSV('tblMes')">Exportar CSV</button>
-<button class="small-ghost" onclick="exportTablePDF('tblMes')">Exportar PDF</button>
+
+
 </div>
 <table class="display table-small" id="tblMes" style="width:100%"></table>
 </div>
 <div style="flex:1; min-width:300px;">
 <h4>Vendas por Grupo</h4>
 <div style="margin-bottom:6px;">
-<button class="small-ghost" onclick="exportTableCSV('tblGrupo')">Exportar CSV</button>
-<button class="small-ghost" onclick="exportTablePDF('tblGrupo')">Exportar PDF</button>
+
+
 </div>
 <table class="display table-small" id="tblGrupo" style="width:100%"></table>
 </div>
 <div style="flex:1; min-width:300px;">
 <h4>Vendas por Forma Pgto</h4>
 <div style="margin-bottom:6px;">
-<button class="small-ghost" onclick="exportTableCSV('tblForma')">Exportar CSV</button>
-<button class="small-ghost" onclick="exportTablePDF('tblForma')">Exportar PDF</button>
+
+
 </div>
 <table class="display table-small" id="tblForma" style="width:100%"></table>
 </div>
 </div>
 </div>
 <script>
-
-function exportTableCSV(tbl){
-  const dt = $('#' + tbl).DataTable();
-  const data = dt.rows().data().toArray();
-  const headers = dt.columns().header().toArray().map(h=>h.textContent);
-  const rows = data.map(r=>headers.map(h=>`"${r[h]||''}"`).join(','));
-  const csv = headers.join(',') + "\n" + rows.join("\n");
-  const blob = new Blob([csv], {type:'text/csv'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob); a.download = tbl + '.csv'; a.click();
-}
-
-function exportTablePDF(tbl){
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({unit:'pt', format:'a4'});
-  const dt = $('#' + tbl).DataTable();
-  const data = dt.rows().data().toArray();
-  const headers = dt.columns().header().toArray().map(h=>h.textContent);
-  const body = data.map(r=>headers.map(h=>r[h]||''));
-  doc.text(tbl, 40, 40);
-  doc.autoTable({
-        columnStyles:{2:{halign:'right'},3:{halign:'right'},4:{halign:'right'}}, head:[headers], body:body, startY: 60, styles:{fontSize:8}});
-  doc.save(tbl + '.pdf');
-}
 
 function renderExtraTables(){
   // MÊS
@@ -586,16 +564,32 @@ function renderExtraTables(){
     const [emp,mes]=k.split('||');
     return {EMPRESA:emp, MES:mes, VALOR:mapM[k]};
   }).sort((a,b)=>b.VALOR-a.VALOR);
-  if($.fn.dataTable.isDataTable('#tblMes')) $('#tblMes').DataTable().destroy();
-  $('#tblMes').DataTable({
-    data:rowsM,
-    columns:[
-      {title:'EMPRESA',data:'EMPRESA'},
-      {title:'MÊS',data:'MES'},
-      {title:'VALOR',data:'VALOR',className:'dt-right',render:d=>fmtCurrency(d)}
-    ],
-    paging:true, pageLength:15, searching:false, info:false, order: [[0,'asc'],[2,'desc']], lengthChange:false, dom:'tp'
-  });
+	// tabela tblMes
+	if($.fn.dataTable.isDataTable('#tblMes')) $('#tblMes').DataTable().destroy();
+	$('#tblMes').DataTable({
+	  data: rowsM,
+	  columns: [
+		{ title: 'EMPRESA', data: 'EMPRESA' },
+		{ title: 'MÊS',     data: 'MES' },
+		{ 
+		  title: 'VALOR',
+		  data: 'VALOR',
+		  className: 'dt-right',
+		  render: function(data, type, row){
+			if (type === 'sort' || type === 'type') return Number(row.VALOR);
+			return fmtCurrency(data);
+		  }
+		}
+	  ],
+	  columnDefs: [{ targets: 2, type: 'num-fmt' }],
+	  paging: true,
+	  pageLength: 15,
+	  searching: false,
+	  info: false,
+	  order: [[0,'asc'],[2,'desc']],
+	  lengthChange: false,
+	  dom: 'tp'
+	});
 
   // GRUPO
   const mapG={};
@@ -607,16 +601,33 @@ function renderExtraTables(){
     const [emp,grp]=k.split('||');
     return {EMPRESA:emp, GRUPO:grp, VALOR:mapG[k]};
   }).sort((a,b)=>b.VALOR-a.VALOR);
-  if($.fn.dataTable.isDataTable('#tblGrupo')) $('#tblGrupo').DataTable().destroy();
-  $('#tblGrupo').DataTable({
-    data:rowsG,
-    columns:[
-      {title:'EMPRESA',data:'EMPRESA'},
-      {title:'GRUPO',data:'GRUPO'},
-      {title:'VALOR',data:'VALOR',className:'dt-right',render:d=>fmtCurrency(d)}
-    ],
-    paging:true, pageLength:15, searching:false, info:false, order: [[0,'asc'],[2,'desc']], lengthChange:false, dom:'tp'
-  });
+	// tabela tblGrupo
+	if($.fn.dataTable.isDataTable('#tblGrupo')) $('#tblGrupo').DataTable().destroy();
+	$('#tblGrupo').DataTable({
+	  data: rowsG,
+	  columns: [
+		{ title: 'EMPRESA', data: 'EMPRESA' },
+		{ title: 'GRUPO',   data: 'GRUPO' },
+		{ 
+		  title: 'VALOR',
+		  data: 'VALOR',
+		  className: 'dt-right',
+		  render: function(data, type, row){
+			if (type === 'sort' || type === 'type') return Number(row.VALOR);
+			return fmtCurrency(data);
+		  }
+		}
+	  ],
+	  columnDefs: [{ targets: 2, type: 'num-fmt' }],
+	  paging: true,
+	  pageLength: 15,
+	  searching: false,
+	  info: false,
+	  order: [[0,'asc'],[2,'desc']],
+	  lengthChange: false,
+	  dom: 'tp'
+	});
+
 
   // FORMA
   const mapF={};
@@ -628,17 +639,34 @@ function renderExtraTables(){
     const [emp,frm]=k.split('||');
     return {EMPRESA:emp, FORMA:frm, VALOR:mapF[k]};
   }).sort((a,b)=>b.VALOR-a.VALOR);
-  if($.fn.dataTable.isDataTable('#tblForma')) $('#tblForma').DataTable().destroy();
-  $('#tblForma').DataTable({
-    data:rowsF,
-    columns:[
-      {title:'EMPRESA',data:'EMPRESA'},
-      {title:'FORMA',data:'FORMA'},
-      {title:'VALOR',data:'VALOR',className:'dt-right',render:d=>fmtCurrency(d)}
-    ],
-    paging:true, pageLength:15, searching:false, info:false, order: [[0,'asc'],[2,'desc']], lengthChange:false, dom:'tp'
-  });
+  // tabela tblForma
+	if($.fn.dataTable.isDataTable('#tblForma')) $('#tblForma').DataTable().destroy();
+	$('#tblForma').DataTable({
+	  data: rowsF,
+	  columns: [
+		{ title: 'EMPRESA', data: 'EMPRESA' },
+		{ title: 'FORMA',   data: 'FORMA' },
+		{ 
+		  title: 'VALOR',
+		  data: 'VALOR',
+		  className: 'dt-right',
+		  render: function(data, type, row){
+			if (type === 'sort' || type === 'type') return Number(row.VALOR);
+			return fmtCurrency(data);
+		  }
+		}
+	  ],
+	  columnDefs: [{ targets: 2, type: 'num-fmt' }],
+	  paging: true,
+	  pageLength: 15,
+	  searching: false,
+	  info: false,
+	  order: [[0,'asc'],[2,'desc']],
+	  lengthChange: false,
+	  dom: 'tp'
+	});
 }
+
 </script>
 <!-- Tabela completa de vendas -->
 <div class="card table-wrap" style="margin-top:12px">
@@ -656,6 +684,7 @@ function renderExtraTables(){
 </div>
 <div class="footer-note">Exportações incluem data/hora de geração no rodapé do PDF.</div>
 <script>
+
 /* ================== CONFIG / STATE ================== */
 let userLogged = false;
 const _SALES_URL = "https://.google.com/uc?export=download&id=14l6dC7Pb8F5GXXkQeVEH3fNuHYGdCgmt";
@@ -686,8 +715,6 @@ const dateFrom = document.getElementById('dateFrom');
 const dateTo = document.getElementById('dateTo');
 
 const vendedorPageLength = document.getElementById('vendedorPageLength');
-
-
 
 /* ================ RESET / UTILITIES ================ */
 /* Zerar todos os dados em memória e destruir tabelas/plots antes de recarregar */
@@ -761,8 +788,25 @@ async function loadFromDefaultFolder(){
 }
 btnLoadData.addEventListener('click', ()=>{
     if (!userLogged) { alert('⚠ Faça login para carregar os dados.'); return; } resetData(); openModal('Carregando arquivos de Vendas'); loadFromDefaultFolder(); });
-btnLocal.addEventListener('click', ()=> {
-    if (!userLogged) { alert('⚠ Faça login para carregar os dados.'); return; } resetData(); openModal('Carregando arquivos de Vendas'); fileInput.click(); fileMetaInput.click(); });
+btnLocal.addEventListener('click', () => {
+    if (!userLogged) {
+        alert('⚠ Faça login para carregar os dados.');
+        return;
+    }
+    resetData();
+    openModal('Carregando arquivos de Vendas');
+    fileInput.value = "";
+    fileMetaInput.value = "";
+    fileInput.click();
+});
+
+fileInput.addEventListener('change', (e) => {
+    handleLocalFile(e);
+    fileMetaInput.value = "";
+    fileMetaInput.click();
+});
+
+fileMetaInput.addEventListener('change', handleLocalMetaFile);
 fileInput.addEventListener('change', handleLocalFile);
 fileMetaInput.addEventListener('change', handleLocalMetaFile);
 btnReset.addEventListener('click', ()=>{ [filterEmpresa,filterVendedor,filterGrupo,filterAno,filterMes,dateFrom,dateTo].forEach(e=>e.value=''); applyFilters(); });
@@ -773,7 +817,9 @@ function openModal(msg='Aguarde...') {
   modalBackdrop.style.display='flex';
   document.getElementById('modalTitle').textContent = msg;
   modalMessage.textContent = msg.textContent = msg; }
+  
 function closeModal(){ modalBackdrop.style.display='none'; modalMessage.textContent=''; }
+
 function closeModalWithSuccess(){ modalMessage.textContent='✅ Aguarde'; setTimeout(()=>modalBackdrop.style.display='none',700); }
 
 /* ================== UTILS: filters string for exports ================== */
@@ -860,6 +906,7 @@ function handleLocalFile(e){
     reader.readAsArrayBuffer(f);
   }
 }
+
 function handleLocalMetaFile(e){
   const f = e.target.files[0]; if(!f) return;
   const reader = new FileReader();
@@ -909,6 +956,7 @@ function normalize(rows){
     };
   });
 }
+
 function tryParseDate(v){
   if(!v) return null;
   if(typeof v === 'number'){ const epoch = new Date(Date.UTC(1899,11,30)); epoch.setDate(epoch.getDate()+Math.floor(v)); return epoch; }
@@ -921,7 +969,19 @@ function tryParseDate(v){
 }
 
 /* ================== ON DATA LOADED ================== */
-function onDataLoaded(){ populateFilters(); applyFilters(); }
+function onDataLoaded(){
+    populateFilters();
+
+    // Ajustes solicitados: definir filtros iniciais
+    const selEmp = document.getElementById('filterEmpresa');
+    if (selEmp && selEmp.options.length > 1) selEmp.selectedIndex = 1;
+
+    const selAno = document.getElementById('filterAno');
+    if (selAno) selAno.value = new Date().getFullYear();
+
+    // Agora aplicar filtros já com os valores padrão
+    applyFilters();
+}
 
 function populateFilters(){
   const setEmp=new Set(), setVend=new Set(), setAno=new Set(), setGrp=new Set();
@@ -931,6 +991,7 @@ function populateFilters(){
   fillSelect(filterGrupo,Array.from(setGrp).sort(), 'Selecione o Grupo...');
   fillSelect(filterAno,Array.from(setAno).sort((a,b)=>a-b),'Ano...');
 }
+
 function fillSelect(sel,arr,placeholder){ sel.innerHTML = ''; const opt=document.createElement('option'); opt.value=''; opt.textContent = placeholder; sel.appendChild(opt); arr.filter(v=>v&&v!=='-').sort().forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); }); }
 
 /* ================== APPLY FILTERS / RENDER PIPELINE ================== */
@@ -967,7 +1028,11 @@ const emp = filterEmpresa.value;
   renderTableVendas();
   updateCharts();
   updateKPIs();
-  renderExtraTables();
+  requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            renderExtraTables();
+        });
+    });
   } catch(e) {
     console.error('Erro em applyFilters:', e);
   } finally {
@@ -994,7 +1059,6 @@ function updateKPIs(){
       pctMeta.toFixed(2).replace('.',',') + '%';
 }
 
-
 /* ================== VENDAS POR VENDEDOR (com METAS) ================== */
 function buildVendasPorVendedor(){
   const map = new Map();
@@ -1005,7 +1069,11 @@ function buildVendasPorVendedor(){
     map.set(key, cur);
   });
   /*vendasPorVendedor = Array.from(map.values()).sort((a,b)=>b.VALOR - a.VALOR);*/
-  vendasPorVendedor = Array.from(map.values()).sort((a,b)=> a.EMPRESA.localeCompare(b.EMPRESA));
+  vendasPorVendedor = Array.from(map.values()).sort((a,b)=> {
+    const emp = a.EMPRESA.localeCompare(b.EMPRESA);
+    if(emp !== 0) return emp;
+    return b.VALOR - a.VALOR;
+});
   vendasPorVendedor.forEach(row=>{
     row.META = computeMetaFor(row.EMPRESA, row.VENDEDOR);
     row.PCT = (row.META && row.META > 0) ? (row.VALOR / row.META) * 100 : null;
@@ -1085,33 +1153,42 @@ function fmtPercent(v){ return v===null || v===undefined ? '-' : (Number(v).toFi
 function renderVendasPorVendedor(){
   const totalVal = vendasPorVendedor.reduce((s,r)=>s + Number(r.VALOR||0),0);
   const avgMeta = vendasPorVendedor.length ? (vendasPorVendedor.reduce((s,r)=>s + Number(r.META||0),0) / vendasPorVendedor.length) : 0;
-  const avgPct = vendasPorVendedor.length ? (vendasPorVendedor.reduce((s,r)=>s + (r.PCT||0),0) / vendasPorVendedor.length) : 0;
-
-  if($.fn.dataTable.isDataTable('#tableVendasVendedor')) { $('#tableVendasVendedor').DataTable().destroy(); $('#tableVendasVendedor').empty(); }
-  const data = vendasPorVendedor.map(r=>({EMPRESA:r.EMPRESA, VENDEDOR:r.VENDEDOR, VALOR:r.VALOR, META:r.META, PCT:r.PCT}));
+  const avgPct  = vendasPorVendedor.length ? (vendasPorVendedor.reduce((s,r)=>s + (r.PCT||0),0) / vendasPorVendedor.length) : 0;
+  if($.fn.dataTable.isDataTable('#tableVendasVendedor')){
+    $('#tableVendasVendedor').DataTable().destroy(); $('#tableVendasVendedor').empty();
+  }
+  const data = vendasPorVendedor.map(r=>({
+    EMPRESA:r.EMPRESA,
+    VENDEDOR:r.VENDEDOR,
+    VALOR:Number(r.VALOR||0),
+    META:Number(r.META||0),
+    PCT:r.PCT
+  }));
   dtVendedor = $('#tableVendasVendedor').DataTable({
-    data: data,
-    columns: [
-      { title:'EMPRESA', data:'EMPRESA' },
-      { title:'VENDEDOR', data:'VENDEDOR' },
-      { title:'VALOR', data:'VALOR', className:'dt-center', className:'dt-right', render: d=> fmtCurrency(d) },
-      { title:'META VENDAS', data:'META', className:'dt-center', className:'dt-right', render: d=> fmtCurrency(d) },
-      { title:'% META', data:'PCT', className:'dt-center', className:'dt-right', render: d=> fmtPercent(d) }
+    data:data,
+    columns:[
+      {title:'EMPRESA',data:'EMPRESA'},
+      {title:'VENDEDOR',data:'VENDEDOR'},
+      {title:'VALOR',data:'VALOR',className:'dt-right',type:'num',render:function(data, type, row){
+        if(type === 'sort') return Number(row.VALOR);
+        return fmtCurrency(data);
+      }},
+      {title:'META VENDAS',data:'META',className:'dt-right',type:'num',render:function(data, type, row){
+        if(type === 'sort') return Number(row.VALOR);
+        return fmtCurrency(data);
+      }},
+      {title:'% META',data:'PCT',className:'dt-right',type:'num',render:d=>fmtPercent(d)}
     ],
-    pageLength: Number(vendedorPageLength.value || 15),
-    order: [[0,'asc'],[2,'desc']],
+    pageLength:Number(vendedorPageLength.value||15),
+    order:[[0,'asc'],[2,'desc']],
     lengthChange:false,
     dom:'rtip'
   });
-  $('#tableVendasVendedor tbody').off('click').on('click','tr', function(){
-    const row = dtVendedor.row(this).data();
-    if(!row) return;
-    openVendedorDocsModal(row.EMPRESA, row.VENDEDOR);
+  $('#tableVendasVendedor tbody').off('click').on('click','tr',function(){
+    const row = dtVendedor.row(this).data(); if(!row)return;
+    openVendedorDocsModal(row.EMPRESA,row.VENDEDOR);
   });
-}
-
-/* ================== CONSOLIDATED FOR DOC MODAL ================== */
-function buildConsolidated(){
+}function buildConsolidated(){
   const map = new Map();
   rawData.forEach(function(r){
     const key = `${r.EMPRESA}||${r.DATA}||${r.DOC}||${r.VENDEDOR}`;
@@ -1190,107 +1267,95 @@ function gerarCores(n){ const palette=['#005baa','#28a745','#ff7f0f','#cc3366','
 
 // Modal: list of documents for vendedor
 function openVendedorDocsModal(empresa, vendedor) {
-  const docs = filtered.filter(d => String(d.EMPRESA) === String(empresa) && String(d.VENDEDOR) === String(vendedor));
+  const docs = filtered.filter(d =>
+    String(d.EMPRESA) === String(empresa) &&
+    String(d.VENDEDOR) === String(vendedor)
+  );
+
   const rows = docs.map(d => `
-    <tr data-empresa="${d.EMPRESA}" data-vendedor="${d.VENDEDOR}" data-data="${d.DATA}" data-doc="${d.DOC}" style="font-size:8pt;">
+    <tr data-empresa="${d.EMPRESA}" 
+        data-vendedor="${d.VENDEDOR}" 
+        data-data="${d.DATA}" 
+        data-doc="${d.DOC}"
+        style="font-size:8pt; cursor:pointer;">
       <td>${d.DATA}</td>
       <td>${d.DOC}</td>
       <td>${d.CLIENTE}</td>
-      <td>${d.VENDEDOR}</td>
       <td style="text-align:right">${formatNumber(d.VALOR)}</td>
     </tr>
   `).join('');
 
+  
   const html = `
-    <div class="modal small-font" style="display:block;max-height:80vh;overflow:auto;padding:8px;border-radius:8px;">
+    <div class="modal small-font" 
+         style="display:block;max-height:80vh;overflow:auto;padding:8px;border-radius:8px;background:white;">
+
+      <!-- TOP: vendedor left / fechar right -->
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-	    <h4 style="margin:0;font-size:10pt;">DOCS: ${vendedor}</h4>
-		<div style="color:red;font-size:6pt">Clicar para abrir</div>
-        <div style="display:flex;gap:4px;">
-          <button id="exportDocsCSV">Exportar CSV</button>
-          <button id="exportDocsPDF">Exportar PDF</button>
-          <button id="closeDocs">Fechar</button>
+        <h4 style="margin:0;font-size:11pt;">${vendedor}</h4>
+        <button id="closeDocs" style="padding:4px 10px;">Fechar</button>
+      </div>
+
+      <!-- SECOND ROW: Total left / message right -->
+      <div style="display:flex;align-items:center;gap:20px;margin-bottom:10px;">
+        <div style="font-size:10pt;">
+          <b>Total:</b> ${docs.reduce((s,d)=>s+Number(d.VALOR||0),0).toLocaleString("pt-BR",{minimumFractionDigits:2})}
+        </div>
+        <div style="font-size:10pt;color:red;">
+          Clicar p/ abrir doc
         </div>
       </div>
-      <table style="width:100%;border-collapse:collapse;margin-top:4px;border:1px solid #eee;font-size:8pt;">
-        <thead><tr style="background:#f6f9ff">
-          <th>DATA</th><th>DOC</th><th>CLIENTE</th><th>VENDEDOR</th><th style="text-align:right">VALOR</th>
-        </tr></thead>
+
+      <table style="width:100%;border-collapse:collapse;font-size:8pt;">
+        <thead>
+          <tr style="background:#f1f1f1">
+            <th>DATA</th>
+            <th>DOC</th>
+            <th>CLIENTE</th>
+            <th style="text-align:right">VALOR</th>
+          </tr>
+        </thead>
         <tbody>${rows}</tbody>
       </table>
     </div>
   `;
 
+
   const backdrop = document.createElement('div');
-  backdrop.style.position = 'fixed';
-  backdrop.style.left = 0;
-  backdrop.style.top = 0;
-  backdrop.style.width = '100%';
-  backdrop.style.height = '100%';
-  backdrop.style.display = 'flex';
-  backdrop.style.alignItems = 'center';
-  backdrop.style.justifyContent = 'center';
-  backdrop.style.background = 'rgba(0,0,0,0.5)';
-  backdrop.style.zIndex = 10000;
+  backdrop.style = `
+    position:fixed;left:0;top:0;width:100%;height:100%;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(0,0,0,0.5);z-index:10000;
+  `;
   backdrop.innerHTML = html;
   document.body.appendChild(backdrop);
 
-  document.getElementById('closeDocs').addEventListener('click', () => document.body.removeChild(backdrop));
+  document.getElementById('closeDocs').onclick = () => document.body.removeChild(backdrop);
 
-  document.getElementById('exportDocsCSV').addEventListener('click', () => {
-    const headers = ['DATA','DOC','CLIENTE','VENDEDOR','VALOR'];
-    const rowsData = docs.map(d => [d.DATA, d.DOC, d.CLIENTE, d.VENDEDOR, (Number(d.VALOR) || 0).toFixed(2)]);
-    exportCSVFromArray(headers, rowsData, `Docs_${empresa}_${vendedor}.csv`);
-  });
-
-  document.getElementById('exportDocsPDF').addEventListener('click', () => {
-    try {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-      doc.setFontSize(10);
-      doc.text(`Documentos - ${vendedor} (${empresa})`, 40, 40);
-      // subtítulo com filtros
-      const filters = getFiltersString();
-      doc.setFontSize(9); doc.setTextColor('#444'); doc.text(filters, 40, 56);
-      const body = docs.map(d => [d.DATA, d.DOC, d.CLIENTE, d.VENDEDOR, (Number(d.VALOR) || 0).toFixed(2)]);
-      doc.autoTable({
-        columnStyles:{2:{halign:'right'},3:{halign:'right'},4:{halign:'right'}}, head: [['DATA','DOC','CLIENTE','VENDEDOR','VALOR']], body: body, startY: 76, styles: { fontSize: 8 } });
-      const now = new Date(); const dt = now.toLocaleString('pt-BR', { hour12: false });
-      const pages = doc.getNumberOfPages();
-      for (let i = 1; i <= pages; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.setTextColor('#666');
-        doc.text(`Gerado em: ${dt}`, doc.internal.pageSize.getWidth() / 2, doc.internal.pageSize.getHeight() - 30, { align: 'center' });
-      }
-      doc.save(`Docs_${empresa}_${vendedor}.pdf`);
-    } catch (e) {
-      alert('Erro ao exportar PDF: ' + e);
-    }
-  });
-
-  // click row -> detalhe do documento
-  backdrop.querySelectorAll('tbody tr').forEach(tr => {
-    tr.addEventListener('click', () => {
-      const emp = tr.getAttribute('data-empresa');
-      const vend = tr.getAttribute('data-vendedor');
-      const dat = tr.getAttribute('data-data');
-      const docn = tr.getAttribute('data-doc');
-      openDocumentoDetalheModal(emp, vend, dat, docn);
+  backdrop.querySelectorAll("tbody tr").forEach(tr => {
+    tr.addEventListener("click", () => {
+      openDocumentoDetalheModal(
+        tr.dataset.empresa,
+        tr.dataset.vendedor,
+        tr.dataset.data,
+        tr.dataset.doc
+      );
+      document.body.removeChild(backdrop);
     });
   });
 }
 
 // Detalhe do documento modal (sem coluna EMPRESA; PRECO/VALOR sem '')
-function openDocumentoDetalheModal(empresa, vendedor, data, docNum) {
+function openDocumentoDetalheModal(empresa, vendedor, dataStr, docNum) {
+
   const registros = rawData.filter(r =>
     String(r.EMPRESA) === String(empresa) &&
     String(r.VENDEDOR) === String(vendedor) &&
-    String(r.DOC) === String(docNum) &&
-    String(r.DATA).substring(0, 10) === String(data)
+    String(r.DOC) === String(docNum)
   );
 
   const total = registros.reduce((s, r) => s + Number(r.VALOR || 0), 0);
+
   const rows = registros.map(r => `
     <tr style="font-size:8pt;">
       <td>${r.DATA}</td>
@@ -1304,67 +1369,47 @@ function openDocumentoDetalheModal(empresa, vendedor, data, docNum) {
   `).join('');
 
   const html = `
-    <div class="modal small-font" style="display:block;max-height:80vh;overflow:auto;padding:8px;border-radius:8px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-        <div>
-          <div style="color:red;font-size:6pt">Clicar no ítem p/ detalhes</div><h4 style="margin:0;font-size:9pt;">Doc: ${docNum} — Vendedor: ${vendedor}</h4>
-          <div style="font-size:8pt;margin-top:4px;text-align:left;">TOTAL : ${formatNumber(total)}</div>
-        </div>
-        <div style="display:flex;gap:6px;">
-          <button id="exportDetCSV">Exportar CSV</button>
-          <button id="exportDetPDF">Exportar PDF</button>
-          <button id="closeDet">Fechar</button>
-        </div>
+    <div class="modal small-font" 
+         style="display:block;max-height:80vh;overflow:auto;padding:8px;border-radius:8px;background:white;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <h4 style="margin:0;font-size:11pt;">Detalhe do Documento: ${docNum}</h4>
+        <button id="closeDocDetail">Fechar</button>
       </div>
-      <table style="width:100%;border-collapse:collapse;margin-top:4px;border:1px solid #eee;font-size:8pt;">
-        <thead><tr style="background:#f6f9ff">
-          <th>DATA</th><th>DOC</th><th>CLIENTE</th><th>PRODUTO</th>
-          <th style="text-align:right">QTD</th><th style="text-align:right">PREÇO</th><th style="text-align:right">VALOR</th>
-        </tr></thead>
+
+      <div style="margin-bottom:6px;font-size:9pt;">
+        <b>Vendedor:</b> ${vendedor}<br>
+        <b>Total:</b> ${total.toLocaleString("pt-BR",{minimumFractionDigits:2})}
+      </div>
+
+      <table style="width:100%;border-collapse:collapse;font-size:8pt;border:1px solid #ccc; table-layout:auto;">
+        <thead>
+          <tr style="background:#f1f1f1">
+            <th>DATA</th>
+            <th>DOC</th>
+            <th>CLIENTE</th>
+            <th>PRODUTO</th>
+            <th>QTD</th>
+            <th>PREÇO</th>
+            <th>VALOR</th>
+          </tr>
+        </thead>
         <tbody>${rows}</tbody>
       </table>
     </div>
- `;
+  `;
 
   const backdrop = document.createElement('div');
-  backdrop.style.position = 'fixed';
-  backdrop.style.left = 0;
-  backdrop.style.top = 0;
-  backdrop.style.width = '100%';
-  backdrop.style.height = '100%';
-  backdrop.style.display = 'flex';
-  backdrop.style.alignItems = 'center';
-  backdrop.style.justifyContent = 'center';
-  backdrop.style.background = 'rgba(0,0,0,0.5)';
-  backdrop.style.zIndex = 11000;
+  backdrop.style = `
+    position:fixed;left:0;top:0;width:100%;height:100%;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(0,0,0,0.5);z-index:10001;
+  `;
   backdrop.innerHTML = html;
   document.body.appendChild(backdrop);
 
-  document.getElementById('closeDet').addEventListener('click', () => document.body.removeChild(backdrop));
-
-  document.getElementById('exportDetCSV').addEventListener('click', ()=>{
-    const headers = ['DATA','DOC','CLIENTE','PRODUTO','QTD','PRECO','VALOR'];
-    const rowsData = registros.map(r=>[r.DATA,r.DOC,r.CLIENTE,r.PRODUTO,r.QTD,formatNumber(r.PRECO),formatNumber(r.VALOR)]);
-    exportCSVFromArray(headers, rowsData, `Documento_${docNum}_${vendedor}.csv`);
-  });
-
-  document.getElementById('exportDetPDF').addEventListener('click', ()=>{
-    try{
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({unit:'pt',format:'a4'});
-      doc.setFontSize(12); doc.text(`Documento: ${docNum} — Vendedor: ${vendedor}`,40,40);
-      // subtítulo com filtros
-      const filters = getFiltersString();
-      doc.setFontSize(9); doc.setTextColor('#444'); doc.text(filters, 40, 56);
-      const body = registros.map(r=>[r.DATA,r.DOC,r.CLIENTE,r.PRODUTO,String(r.QTD),(formatNumber(r.PRECO)),(formatNumber(r.VALOR))]);
-      doc.autoTable({
-        columnStyles:{2:{halign:'right'},3:{halign:'right'},4:{halign:'right'}},head:[['DATA','DOC','CLIENTE','PRODUTO','QTD','PRECO','VALOR']], body:body, startY:76, styles:{fontSize:8}});
-      const now = new Date(); const dt = now.toLocaleString('pt-BR',{hour12:false});
-      const pages = doc.getNumberOfPages();
-      for(let i=1;i<=pages;i++){ doc.setPage(i); doc.setFontSize(10); doc.setTextColor('#666'); doc.text(`Gerado em: ${dt}`, doc.internal.pageSize.getWidth()/2, doc.internal.pageSize.getHeight()-30, {align:'center'}); doc.text(`Página ${i} de ${pages}`, doc.internal.pageSize.getWidth()/2, doc.internal.pageSize.getHeight()-16, {align:'center'}); }
-      doc.save(`Documento_${docNum}_${vendedor}.pdf`);
-    }catch(e){ alert('Erro exportar PDF: '+e); }
-  });
+  document.getElementById("closeDocDetail").onclick = () => {
+    document.body.removeChild(backdrop);
+  };
 }
 
 /* ================== EXPORT HELPERS ================== */
@@ -1378,44 +1423,6 @@ function exportCSVFromArray(headers, rows, filename){
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url);
 }
-
-/* ================== PDF Export geral ================== */
-async function exportResumoPDF(){
-  try{
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({unit:'pt',format:'a4'});
-    doc.setFontSize(14); doc.setTextColor('#005baa'); doc.text('TUDO CASA - Resumo de Vendas',40,40);
-    const filters = getFiltersString();
-    doc.setFontSize(9); doc.setTextColor('#444'); doc.text(filters, 40, 56);
-    try{ const c1 = document.getElementById('chartMes').toDataURL('image/png'); const c2 = document.getElementById('chartVendedor').toDataURL('image/png'); doc.addImage(c1,'PNG',40,100,260,150); doc.addImage(c2,'PNG',320,100,240,150); }catch(e){}
-    const now = new Date(); const dt = now.toLocaleString('pt-BR',{hour12:false});
-    const pages = doc.getNumberOfPages();
-    for(let i=1;i<=pages;i++){ doc.setPage(i); doc.setFontSize(10); doc.setTextColor('#666'); doc.text(`Gerado em: ${dt}`, doc.internal.pageSize.getWidth()/2, doc.internal.pageSize.getHeight()-30, {align:'center'}); }
-  }catch(e){ alert('Erro exportar PDF: '+e); }
-}
-
-async function exportCompletoPDF(){
-  try{
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({unit:'pt',format:'a4'});
-    doc.setFontSize(14); doc.setTextColor('#005baa'); doc.text('TUDO CASA - Vendas (Completo)',40,40);
-    const filters = getFiltersString();
-    doc.setFontSize(9); doc.setTextColor('#444'); doc.text(filters, 40, 56);
-    try{ const c1 = document.getElementById('chartMes').toDataURL('image/png'); doc.addImage(c1,'PNG',40,80,520,200); }catch(e){}
-    doc.addPage();
-    const body = filtered.map(r=>[r.DATA,r.EMPRESA,r.DOC,r.VENDEDOR,r.GRUPO,r.FORMA,(Number(r.VALOR)||0).toFixed(2)]);
-    doc.autoTable({
-        columnStyles:{2:{halign:'right'},3:{halign:'right'},4:{halign:'right'}},head:[['DATA','EMPRESA','DOC','VENDEDOR','GRUPO','FORMA','VALOR']], body:body, startY:40, styles:{fontSize:8}});
-    const now = new Date(); const dt = now.toLocaleString('pt-BR',{hour12:false});
-    const pages = doc.getNumberOfPages();
-    for(let i=1;i<=pages;i++){ doc.setPage(i); doc.setFontSize(10); doc.setTextColor('#666'); doc.text(`Gerado em: ${dt}`, doc.internal.pageSize.getWidth()/2, doc.internal.pageSize.getHeight()-30, {align:'center'}); }
-    doc.save('Vendas_TCASA_Completo.pdf');
-  }catch(e){ alert('Erro exportar PDF: '+e); }
-}
-
-/* ================== EXPORT BUTTONS ================== */
-document.getElementById('btnExportVendedorCSV')?.addEventListener('click', ()=>{ if(!vendasPorVendedor.length){ alert('Sem dados'); return; } const headers=['EMPRESA','VENDEDOR','VALOR','META VENDAS','% META']; const rows = vendasPorVendedor.map(r=>[r.EMPRESA,r.VENDEDOR,formatNumber(r.VALOR),formatNumber(r.META), r.PCT===null? '-' : (Number(r.PCT).toFixed(2)+'%')]); exportCSVFromArray(headers, rows, 'vendas_por_vendedor.csv'); });
-document.getElementById('btnExportVendedorPDF')?.addEventListener('click', exportResumoPDF);
 
 /* ================== INIT AUTO-LOAD ================== */
 (async function init(){
@@ -1521,84 +1528,6 @@ function updatePeriodNotice(){
 </script>
 
 <script>
-// Auto-load LOGO as Base64
-	let logoBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAVIAAABoCAMAAACUnYiiAAAAA3NCSVQICAjb4U/gAAABgFBMVEUAAAClpaW9AhtSUlK2UmDv7+8vAgjm5uZzc3Pe3t7vgI7spa/hFzBwAxJ7e3vW1tbocX7w+PcQEBBKSkqEhIRmZmbFxcXvXXHvwMbw//86OjqZmZnHNEjgCiczMzPwjJrRAh61tbVmZmb31dopKSnpU2f05ujsZnghISHmASB7P0daWlr/zMzsmKPjHDfvfIwVAgT86ez2tL2OAxb////dAAjnO1LnQ1n7S2KMjIzwiZa9vb3BAhzBpKgZGRneABnmYXP1xs1OAAvlTWLlKkOZmZnzm6bgEir0qLLMzMzwk5+pECn39/ftboDoMkrphZL74OT509gICAjfCSDhHDf73ODvASFFAwxCQkLmRVOgc3nta33sY3X5z9XvnKb3vcXhEy/3///kJD7fAB/mN0z97vCcAhd8AxPmSFruq7Xnbn7eABDQITn/5Ojuc4ToWm713uH9fo/vCin7U2r0pK/KRVfmUWVEExmtra3zn6riJT7kITv2ASLvhJP/uMP1rLYa9FjZAAAAgHRSTlP/////////////////////////////////////////////////////////////////////AP///////////////////////////////////////////////////////////////////////////////////////////////////zsMdosAAAAJcEhZcwAACxIAAAsSAdLdfvwAAAAWdEVYdENyZWF0aW9uIFRpbWUAMDUvMjcvMTXCg2bQAAAAHHRFWHRTb2Z0d2FyZQBBZG9iZSBGaXJld29ya3MgQ1M26LyyjAAAFC5JREFUeJzlnYtXGkm+x3G4HYQ4Mio+ucBwjNFcTjSQDgTdi3Hk+GAb42OdyVxlBJEZZ7ji7Ky7q/Gy/uu3u6sfVb/6VT8AMzsn33Nycuxumu5P/+pX33p0EZD7lCKFp9JD8XhsdDSm/YvH02u7Yanf0/6BFej9o0ooqsEsFmOcisX4UHoq+nmC7Q2pEp66jUOOo7yK8fTnx9U/UiW8NlR0Y8lwvd39rLD6RCpFb4uj3kgyiq+FHuf6/w3lB6kSHfLNkgrW9GdC1TvSsBqffao41UMGiE741qj/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";
-
-// Botão Exportar PDF
-	document.getElementById("btnExportVendedorPDF").onclick = function () {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit: "pt", format: "a4" });
-    const pageWidth = doc.internal.pageSize.getWidth();
-
-    // Header
-    try {
-        doc.addImage(logoBase64, "PNG", 30, 20, 90, 45);
-    } catch(e) {}
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(20);
-    doc.text("PAINEL DE VENDAS", 140, 45);
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    try {
-        doc.text(getFiltersString(), 30, 72);
-    } catch(e) {}
-
-    let startY = 90;
-
-    // Table export
-    const dt = $('#tableVendasVendedor').DataTable();
-    const headers = dt.columns().header().toArray().map(h => h.textContent);
-    const data = dt.rows({search:'applied'}).data().toArray().map(r => [
-        r.EMPRESA,
-        r.VENDEDOR,
-        fmtCurrency(r.VALOR),
-        fmtCurrency(r.META),
-        fmtPercent(r.PCT)
-    ]);
-
-    doc.autoTable({
-        columnStyles:{2:{halign:'right'},3:{halign:'right'},4:{halign:'right'}},
-        head: [headers],
-        body: data,
-        startY: startY,
-        styles: { fontSize: 7, cellPadding: 1.5 },
-        headStyles: { fillColor: [0, 90, 170], textColor: 255 },
-        margin: { left: 30, right: 30 }
-    });
-
-    // Page 2 - Charts
-    doc.addPage();
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text("Gráficos Vendas - Resumo", 30, 40);
-
-    function addChart(id,x,y,w,h){
-        try {
-            const c = document.getElementById(id);
-            if(c){
-                const img = c.toDataURL('image/png');
-                doc.addImage(img,'PNG',x,y,w,h);
-            }
-        } catch(e) {}
-    }
-
-    addChart('chartMes',30,60,260,180);
-    addChart('chartGrupo',310,60,260,180);
-    addChart('chartForma',150,260,300,180);
-
-    // Footer
-    const pages = doc.getNumberOfPages();
-    const dtStr = new Date().toLocaleString("pt-BR");
-    for (let i=1; i<=pages; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.text("Gerado em: " + dtStr, pageWidth/2, doc.internal.pageSize.getHeight()-20, { align: "center" });
-    }
-
-    doc.save("Vendas_por_Vendedor.pdf");
-};
 </script>
 
 </body>
