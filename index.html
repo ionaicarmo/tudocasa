@@ -1,3 +1,31 @@
+
+<!-- Proteções anti-cópia -->
+<script>
+// Desabilita botão direito
+document.addEventListener("contextmenu", e => e.preventDefault());
+
+// Desabilita F12, Ctrl+Shift+I, Ctrl+U e Ctrl+S
+document.addEventListener("keydown", function(e) {
+    if (e.key === "F12") e.preventDefault();
+    if (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "i")) e.preventDefault();
+    if (e.ctrlKey && (e.key === "U" || e.key === "u")) e.preventDefault();
+    if (e.ctrlKey && (e.key === "S" || e.key === "s")) e.preventDefault();
+});
+
+// Oculta código fonte usando CSS
+document.addEventListener("DOMContentLoaded", () => {
+    const style = document.createElement("style");
+    style.innerHTML = `
+        html, body, * {
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+            user-select: none !important;
+        }
+    `;
+    document.head.appendChild(style);
+});
+</script>
 <!DOCTYPE html>
 
 <html lang="pt-BR">
@@ -176,11 +204,6 @@ h4 { color:#003366 !important; }
   button, .small-ghost { width:100% !important; margin-bottom:6px !important; }
   table { display:block !important; overflow-x:auto !important; width:100% !important; }
 }
-</style>
-<style>table.dataTable td, table.dataTable th { padding: 8px 22px !important; }</style>
-</head>
-<body>
-<style>
 #login-overlay {
     position: fixed;
     top:0; left:0; width:100%; height:100%;
@@ -415,6 +438,41 @@ h4 { color:#003366 !important; }
     margin-right:10px;
 }
 
+
+/* === HEADER ALIGNMENTS ADDED BY REQUEST === */
+
+/* Vendas por Vendedor */
+#tableVendasVendedor thead th:nth-child(1),
+#tableVendasVendedor thead th:nth-child(2) {
+  text-align: left !important;
+}
+
+/* Vendas por Mês */
+#tblMes thead th:nth-child(1),
+#tblMes thead th:nth-child(2) {
+  text-align: left !important;
+}
+#tblMes thead th:nth-child(3) {
+  text-align: right !important;
+}
+
+/* Vendas por Grupo */
+#tblGrupo thead th:nth-child(1),
+#tblGrupo thead th:nth-child(2) {
+  text-align: left !important;
+}
+#tblGrupo thead th:nth-child(3) {
+  text-align: right !important;
+}
+
+/* Vendas por Forma Pgto */
+#tblForma thead th:nth-child(1),
+#tblForma thead th:nth-child(2) {
+  text-align: left !important;
+}
+#tblForma thead th:nth-child(3) {
+  text-align: right !important;
+}
 </style>
 <div class="header">
 <img alt="Logo" src="LogoMarca.png" style="width:220px;height:60px"/>
@@ -433,7 +491,7 @@ h4 { color:#003366 !important; }
 <span id="statusBadge" style="margin-left:8px;color:#666"></span>
 </div>
 <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-<button class="small-ghost" id="btnReset">Limpar</button>
+<button class="small-ghost" id="btnReset">Limpar Filtros</button>
 </div>
 </div>
 <!-- Titles above selects and aligned filters -->
@@ -478,7 +536,7 @@ h4 { color:#003366 !important; }
 <option value="25">25</option>
 <option value="50">50</option>
 </select>
-
+<button id="btnExportPDF" class="small-ghost" style="padding:6px 12px; background:#444; color:#fff; font-weight:bold;">Exportar PDF</button>
 
 </div>
 </div>
@@ -567,6 +625,7 @@ function renderExtraTables(){
 	// tabela tblMes
 	if($.fn.dataTable.isDataTable('#tblMes')) $('#tblMes').DataTable().destroy();
 	$('#tblMes').DataTable({
+        initComplete: function(){ inserirBotaoCSV(); },
 	  data: rowsM,
 	  columns: [
 		{ title: 'EMPRESA', data: 'EMPRESA' },
@@ -689,7 +748,7 @@ function renderExtraTables(){
 let userLogged = false;
 const _SALES_URL = "https://.google.com/uc?export=download&id=14l6dC7Pb8F5GXXkQeVEH3fNuHYGdCgmt";
 const _META_URL  = "https://.google.com/uc?export=download&id=1x-RbTSsZg7ObFyTowBC9kvwMJT9QnyZH";
-const LOCAL_SALES_NAME = "Vendas_TC.csv";
+const LOCAL_SALES_NAME = "Vendas.csv";
 const LOCAL_META_NAME  = "Meta_Vendedor.xlsx";
 
 let rawData = [], filtered = [], consolidated = [], vendasPorVendedor = [], commissionData = [];
@@ -1202,7 +1261,9 @@ function renderVendasPorVendedor(){
 /* ================== TABLE VENDAS (completa) ================== */
 function formatDateBR(d){ if(!d) return ""; const dt=new Date(d); if(isNaN(dt)) return d; return dt.toLocaleDateString("pt-BR"); }
 function renderTableVendas(){
-  if($.fn.dataTable.isDataTable('#tableVendas')) { $('#tableVendas').DataTable().destroy(); $('#tableVendas').empty(); }
+  if($.fn.dataTable.isDataTable('#tableVendas')) { $('#tableVendas').DataTable().destroy(); $('#tableVendas').empty(); 
+    try{ inserirBotaoCSV(); }catch(e){}
+}
   const cols = ['DATA','EMPRESA','DOC','CLIENTE','PRODUTO','QTD','PRECO','VALOR','FORMA','VENDEDOR','GRUPO','SUBGRUPO'];
   const data = filtered.map(r=>({DATA:r.DATA, EMPRESA:r.EMPRESA, DOC:r.DOC, CLIENTE:r.CLIENTE, PRODUTO:r.PRODUTO, QTD:r.QTD, PRECO:r.PRECO, VALOR:(Number(r.VALOR)||0), FORMA:r.FORMA, VENDEDOR:r.VENDEDOR, GRUPO:r.GRUPO, SUBGRUPO:r.SUBGRUPO}));
   dtVendas = $('#tableVendas').DataTable({ data:data, columns: cols.map(c=>({title:c,data:c, render: c==='VALOR'? v=>fmtCurrency(v): (c==='DATA'? d=>formatDateBR(d): undefined)})), pageLength:30 });
@@ -1528,6 +1589,169 @@ function updatePeriodNotice(){
 </script>
 
 <script>
+</script>
+
+
+<!-- PDF Export Full Script -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+
+
+
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+document.body.addEventListener("click", async function(e){
+if(e.target && e.target.id==="btnExportPDF"){
+ const { jsPDF } = window.jspdf;
+ const doc=new jsPDF({orientation:'p',unit:'pt',format:'a4'});
+ async function loadLogo(){
+   try{
+     const img=new Image(); img.src='LogoMarca.png'; await img.decode();
+     const c=document.createElement('canvas'); c.width=img.width; c.height=img.height;
+     c.getContext('2d').drawImage(img,0,0);
+     return c.toDataURL('image/png');
+   }catch(e){return null;}
+ }
+ const logo=await loadLogo();
+ if(logo){ doc.addImage(logo,'PNG',200,20,200,100); }
+ doc.setFontSize(18); doc.text("Painel de Vendas - Resumo",300,140,{align:'center'});
+ function isNumeric(i,id){
+   const t=document.getElementById(id); if(!t) return false;
+   for(const r of t.querySelectorAll("tbody tr")){
+     const c=r.children[i]; if(!c) continue;
+     const v=c.textContent.trim().replace(/\./g,'').replace(',','.');
+     if(v!=="" && !isNaN(parseFloat(v))) return true;
+   }
+   return false;
+ }
+ function footer(){
+   const d=new Date();
+   doc.setFontSize(9);
+   doc.text("Gerado em: "+d.toLocaleDateString('pt-BR')+" "+d.toLocaleTimeString('pt-BR'),580,820,{align:'right'});
+ }
+ function addTable(title,id,y){
+   const t=document.getElementById(id); if(!t) return y;
+   doc.setFontSize(14); doc.text(title,300,y,{align:'center'}); y+=12;
+   const heads=[...t.querySelectorAll('thead th')].map(h=>h.textContent.trim());
+   const colStyles={}, headStyles={};
+   heads.forEach((h,i)=>{ if(isNumeric(i,id)){ colStyles[i]={halign:'right'}; headStyles[i]={halign:'right'}; } else { colStyles[i]={halign:'left'}; headStyles[i]={halign:'left'}; } });
+   doc.autoTable({html:"#"+id,startY:y,styles:{cellPadding:2,fontSize:9},headStyles:headStyles,columnStyles:colStyles,didDrawPage:footer});
+   return doc.lastAutoTable.finalY+20;
+ }
+ let y=180;
+ y=addTable("Vendas por Vendedor","tableVendasVendedor",y);
+ doc.addPage(); footer(); y=40;
+ y=addTable("Por Mês","tblMes",y);
+ y=addTable("Por Grupo","tblGrupo",y);
+ y=addTable("Por Forma de Pgto","tblForma",y);
+ doc.addPage(); footer();
+ async function graph(id,title,x,y){
+   const c=document.getElementById(id); if(!c) return;
+   const img=c.toDataURL("image/png");
+   doc.setFontSize(12); doc.text(title,x+125,y-5,{align:'center'});
+   doc.addImage(img,"PNG",x,y,250,180);
+ }
+ await graph("chartVendedor","Por Vendedor",20,60);
+ await graph("chartMes","Por Mês",300,60);
+ await graph("chartGrupo","Por Grupo",20,260);
+ await graph("chartForma","Por Forma de Pgto",300,260);
+ footer();
+ doc.save("Vendas_Resumo.pdf");
+}
+});
+});
+</script>
+
+
+<script>
+// CSV export button insertion
+function inserirBotaoCSV(){
+    const filter = document.querySelector('#tableVendas_filter');
+    if(!filter) return;
+    if(document.getElementById('btnCsvVendas')) return;
+    const label = filter.querySelector('label');
+    if(!label) return;
+    const btn = document.createElement('button');
+    btn.id = 'btnCsvVendas';
+    btn.type = 'button';
+    btn.textContent = 'Exportar para arquivo CSV';
+    btn.style.cssText = 'margin-left:8px;background:#333;color:#fff;font-weight:bold;padding:6px 10px;border:none;border-radius:4px;cursor:pointer;';
+    label.appendChild(btn);
+    btn.onclick = exportarCSV;
+}
+
+function exportarCSV(){
+    const tabela = $('#tableVendas').DataTable();
+    if(!tabela){ alert('Tabela não carregada.'); return; }
+    const headers = tabela.columns().header().toArray().map(h => h.innerText);
+    const data = tabela.rows().data().toArray();
+    let csv = headers.join(';') + "\n";
+    data.forEach(row => {
+        csv += headers.map(h => (row[h] ?? "").toString().replace(/;/g, ',')).join(';') + "\n";
+    });
+    const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "Vendas_Painel.csv";
+    a.click();
+}
+</script>
+
+
+<script>
+function exportarCSV(){
+    try{
+        const tabela = $('#tableVendas').DataTable();
+        if(!tabela){ alert('Tabela não carregada.'); return; }
+        const headers = tabela.columns().header().toArray().map(h => h.innerText.trim());
+        const data = tabela.rows({search:'applied'}).data().toArray();
+        let csv = headers.join(';') + "\n";
+        data.forEach(row => {
+            csv += headers.map(h => {
+                let v = row[h] ?? "";
+                if(String(h).toUpperCase() === 'VALOR'){
+                    if(typeof v === 'string'){
+                        v = v.replace(/[R$r]\s*/g,'').replace(/\./g,'').replace(/,/g,'.').trim();
+                    }
+                    v = Number(v) || 0;
+                }
+                return String(v).replace(/;/g, ',');
+            }).join(';') + "\n";
+        });
+        const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = "Vendas_Painel.csv";
+        a.click();
+    }catch(e){ console.error('exportarCSV erro', e); alert('Erro ao exportar CSV.'); }
+}
+function inserirBotaoCSV(){
+    try{
+        if(document.getElementById('btnCsvVendas')) return;
+        const filter = document.querySelector('#tableVendas_filter');
+        if(!filter) return;
+        const btn = document.createElement('button');
+        btn.id='btnCsvVendas';
+        btn.type='button';
+        btn.textContent='Exportar para arquivo CSV';
+        btn.style.marginLeft='8px';
+        btn.onclick=exportarCSV;
+        const label=filter.querySelector('label')||filter;
+        label.appendChild(btn);
+    }catch(e){ console.warn('inserirBotaoCSV erro', e); }
+}
 </script>
 
 </body>
